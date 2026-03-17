@@ -24,41 +24,53 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 15px; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 15px; }
         .modal.active { display: flex; }
-        #loginOverlay { position: fixed; inset: 0; z-index: 9999; background: #1d4ed8; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        #loginOverlay { position: fixed; inset: 0; z-index: 9999; background: #2563eb; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .game-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .game-card:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
+    <!-- MÀN HÌNH ĐĂNG NHẬP (Luôn hiện đầu tiên) -->
     <div id="loginOverlay">
-        <div class="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-sm text-center border-t-8 border-yellow-400">
-            <div class="text-6xl mb-4">🇷🇺</div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-1">Chào mừng bạn!</h2>
-            <p class="text-gray-400 mb-6 text-sm">Nhập thông tin để bắt đầu thử thách</p>
-            <input type="text" id="studentName" placeholder="Họ và Tên" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl mb-3 focus:border-blue-500 outline-none transition-all">
-            <input type="text" id="studentId" placeholder="MSSV" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl mb-6 focus:border-blue-500 outline-none transition-all">
-            <button onclick="saveStudentInfo()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 active:scale-95 transition-all shadow-xl text-lg uppercase tracking-wide">Vào học ngay</button>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center border-b-8 border-yellow-400">
+            <div class="text-6xl mb-4 animate-bounce">🇷🇺</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Chào mừng bạn!</h2>
+            <p class="text-gray-500 mb-8 text-sm">Nhập thông tin để mở khóa bài học</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="studentName" placeholder="Họ và Tên của bạn" 
+                    class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all">
+                
+                <input type="text" id="studentId" placeholder="Mã số sinh viên (MSSV)" 
+                    class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all">
+                
+                <button onclick="saveStudentInfo()" 
+                    class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg text-lg uppercase tracking-wider active:scale-95 transition-all">
+                    Bắt đầu học ngay
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- BẢNG ĐIỂM ADMIN -->
     <div id="teacherModal" class="modal">
-        <div class="bg-white p-6 rounded-[2rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border-2 border-blue-50">
+        <div class="bg-white p-6 rounded-[2rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b pb-4">
-                <h2 class="font-bold text-xl text-blue-900">Bảng Điểm Sinh Viên 📊</h2>
-                <button onclick="closeTeacherModal()" class="text-gray-300 hover:text-red-500 text-3xl transition-colors">✕</button>
+                <h2 class="font-bold text-xl text-blue-900">Bảng Điểm Hệ Thống 📊</h2>
+                <button onclick="closeTeacherModal()" class="text-gray-400 hover:text-red-500 text-3xl">✕</button>
             </div>
-            <div class="overflow-y-auto flex-grow rounded-xl">
-                <table class="w-full text-left border-collapse">
-                    <thead class="sticky top-0 bg-blue-50 text-[10px] uppercase text-blue-400 tracking-widest font-bold">
+            <div class="overflow-y-auto flex-grow">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
                             <th class="p-4">Sinh viên</th>
                             <th class="p-4">MSSV</th>
                             <th class="p-4 text-center">Điểm</th>
-                            <th class="p-4">Thời gian</th>
+                            <th class="p-4">Ngày giờ</th>
                         </tr>
                     </thead>
                     <tbody id="scoreTableBody" class="text-sm divide-y divide-gray-50"></tbody>
@@ -67,210 +79,214 @@
         </div>
     </div>
 
-    <!-- HEADER -->
-    <nav class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <span class="text-2xl">🎓</span>
-                <span class="font-bold tracking-tighter uppercase text-sm sm:text-base">Russian Learning</span>
+    <!-- GIAO DIỆN CHÍNH (Sẽ được hiện bằng JS) -->
+    <div id="appContainer" style="display: none;">
+        <!-- Header -->
+        <nav class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-lg">
+            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl">🇷🇺</span>
+                    <span class="font-bold uppercase tracking-tight">Học Số Tiếng Nga</span>
+                </div>
+                <button onclick="openTeacherModal()" class="bg-white/10 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border border-white/20">
+                    Admin
+                </button>
             </div>
-            <button onclick="openTeacherModal()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold uppercase border border-white/20 tracking-wider transition-all">
-                🔑 Admin
-            </button>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- GIAO DIỆN CHÍNH (Sử dụng inline style để kiểm soát tuyệt đối) -->
-    <main id="appMain" class="max-w-4xl mx-auto p-4 space-y-6" style="display: none;">
-        
-        <!-- Welcome Info -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border-l-8 border-blue-500">
-            <h2 class="text-xl font-bold text-gray-800">Chào mừng, <span id="displayName" class="text-blue-600">...</span>!</h2>
-            <p class="text-gray-400 text-xs mt-1">Bài học hôm nay: Số đếm tiếng Nga (1 - 30)</p>
-        </div>
+        <main class="max-w-4xl mx-auto p-4 space-y-6">
+            <!-- Thẻ chào mừng -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border-l-8 border-yellow-400">
+                <h2 class="text-xl font-bold text-gray-800">Chào, <span id="displayName" class="text-blue-600">...</span>!</h2>
+                <p class="text-gray-500 text-xs mt-1">Hôm nay chúng ta sẽ chinh phục số từ 1 đến 30.</p>
+            </div>
 
-        <!-- Dashboard -->
-        <section id="game-hub" class="space-y-4">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Hoạt động chính</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div onclick="startSpeedGame()" class="bg-white p-6 rounded-[2rem] border-2 border-transparent hover:border-blue-400 cursor-pointer transition-all shadow-md hover:shadow-xl flex items-center space-x-5 group">
-                    <div class="bg-yellow-100 text-yellow-600 text-4xl p-4 rounded-2xl group-hover:rotate-12 transition-transform">⚡</div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-lg">Thử thách Tốc độ</h4>
-                        <p class="text-gray-400 text-xs">Phản xạ nhanh với số đếm</p>
+            <!-- Khu vực Dashboard chính -->
+            <div id="dashboardSection">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">Danh mục hoạt động</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Nút vào Game -->
+                    <div onclick="startSpeedGame()" class="game-card bg-white p-6 rounded-[2rem] shadow-md border-2 border-transparent hover:border-blue-500 cursor-pointer flex items-center space-x-4">
+                        <div class="bg-blue-100 text-blue-600 text-3xl p-4 rounded-2xl">⚡</div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Trò chơi Tốc độ</h4>
+                            <p class="text-gray-400 text-[10px]">Nhìn chữ đoán số cực nhanh</p>
+                        </div>
+                    </div>
+                    <!-- Nút Học tập (Placeholder) -->
+                    <div class="game-card bg-gray-50 p-6 rounded-[2rem] border-2 border-dashed border-gray-200 opacity-60 flex items-center space-x-4 grayscale">
+                        <div class="bg-gray-200 text-gray-500 text-3xl p-4 rounded-2xl">📚</div>
+                        <div>
+                            <h4 class="font-bold text-gray-500">Thư viện Từ vựng</h4>
+                            <p class="text-gray-400 text-[10px]">Sắp ra mắt</p>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-[2rem] border-2 border-dashed border-gray-100 opacity-50 flex items-center space-x-5 grayscale">
-                    <div class="bg-gray-100 text-gray-400 text-4xl p-4 rounded-2xl">🎧</div>
-                    <div>
-                        <h4 class="font-bold text-gray-400 italic">Luyện nghe số</h4>
-                        <p class="text-gray-400 text-xs">Tính năng đang phát triển</p>
+            </div>
+
+            <!-- Khu vực Trò chơi (Ẩn mặc định bằng display none) -->
+            <div id="gameSection" style="display: none;" class="flex flex-col space-y-4">
+                <div class="bg-blue-700 text-white rounded-[2.5rem] p-8 text-center shadow-2xl relative overflow-hidden min-h-[450px] flex flex-col justify-between">
+                    <div class="flex justify-between items-center relative z-10">
+                        <div class="bg-white/10 px-4 py-2 rounded-xl text-xs font-bold border border-white/10">ĐIỂM: <span id="currentScore" class="text-yellow-400 text-lg ml-1">0</span></div>
+                        <div class="bg-red-500 px-4 py-2 rounded-xl font-bold flex items-center space-x-2">
+                            <span>⏱</span>
+                            <span id="gameTimer">30</span>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 py-10">
+                        <p class="text-blue-200 text-[10px] uppercase font-bold tracking-[0.3em] mb-4">Dịch sang số:</p>
+                        <h1 id="russianWord" class="text-5xl md:text-7xl font-black tracking-tight mb-2">...</h1>
+                    </div>
+
+                    <div id="optionsGrid" class="grid grid-cols-2 gap-3 relative z-10">
+                        <!-- Nút đáp án sẽ được chèn vào đây -->
                     </div>
                 </div>
+                <button onclick="quitGame()" class="text-gray-400 text-sm font-bold uppercase tracking-widest hover:text-red-500 transition-colors">✕ Thoát trò chơi</button>
             </div>
-        </section>
-
-        <!-- GAME AREA -->
-        <section id="game-speed" style="display: none;">
-            <div class="bg-blue-700 text-white rounded-[2.5rem] p-8 text-center shadow-2xl relative min-h-[400px] flex flex-col justify-between overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
-                
-                <div class="flex justify-between items-center relative z-10">
-                    <div class="bg-black/20 px-4 py-2 rounded-2xl text-xs font-bold border border-white/10">ĐIỂM: <span id="currentSpeedScore" class="text-yellow-400 text-lg ml-1">0</span></div>
-                    <div class="bg-red-500 px-5 py-2 rounded-2xl font-bold shadow-lg flex items-center space-x-2">
-                        <span>⏱</span>
-                        <span id="speedTimer" class="text-xl">30</span>
-                    </div>
-                </div>
-                
-                <div class="relative z-10">
-                    <p class="text-blue-200 text-[10px] uppercase font-bold tracking-widest mb-3 opacity-80">Số tiếng Nga này là số mấy?</p>
-                    <div id="targetWord" class="text-5xl md:text-7xl font-extrabold mb-10 tracking-tight drop-shadow-2xl">...</div>
-                </div>
-
-                <div id="gameOptions" class="grid grid-cols-2 gap-4 max-w-sm mx-auto w-full relative z-10"></div>
-            </div>
-        </section>
-    </main>
+        </main>
+    </div>
 
     <script type="module">
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const ADMIN_PIN = "9999";
-
-        const russianNumbers = [
-            { num: 1, ru: "один" }, { num: 2, ru: "два" }, { num: 3, ru: "три" }, { num: 4, ru: "четыре" }, { num: 5, ru: "пять" },
-            { num: 6, ru: "шесть" }, { num: 7, ru: "семь" }, { num: 8, ru: "восемь" }, { num: 9, ru: "девять" }, { num: 10, ru: "десять" },
-            { num: 11, ru: "одиннадцать" }, { num: 12, ru: "двенадцать" }, { num: 13, ru: "тринадцать" }, { num: 14, ru: "четырнадцать" }, { num: 15, ru: "пятнадцать" },
-            { num: 20, ru: "двадцать" }, { num: 30, ru: "тридцать" }
+        const PIN = "9999";
+        const DATA = [
+            { n: 1, r: "один" }, { n: 2, r: "два" }, { n: 3, r: "три" }, { n: 4, r: "четыре" }, { n: 5, r: "пять" },
+            { n: 6, r: "шесть" }, { n: 7, r: "семь" }, { n: 8, r: "восемь" }, { n: 9, r: "девять" }, { n: 10, r: "десять" },
+            { n: 11, r: "одиннадцать" }, { n: 12, r: "двенадцать" }, { n: 13, r: "тринадцать" }, { n: 14, r: "четырнадцать" }, { n: 15, r: "пятнадцать" },
+            { n: 20, r: "двадцать" }, { n: 30, r: "тридцать" }
         ];
 
-        let currentStudent = { name: "", id: "" };
+        let user = { name: "", id: "" };
         let score = 0;
         let timer;
 
+        // HÀM QUAN TRỌNG: MỞ GIAO DIỆN
         window.saveStudentInfo = () => {
-            const nameVal = document.getElementById('studentName').value.trim();
-            const idVal = document.getElementById('studentId').value.trim();
-            
-            if(!nameVal || !idVal) {
-                alert("Bạn vui lòng nhập đủ Họ tên và MSSV nhé!");
+            const nameInput = document.getElementById('studentName').value.trim();
+            const idInput = document.getElementById('studentId').value.trim();
+
+            if (!nameInput || !idInput) {
+                alert("Vui lòng điền đầy đủ thông tin bạn nhé!");
                 return;
             }
-            
-            currentStudent = { name: nameVal, id: idVal };
-            document.getElementById('displayName').innerText = nameVal;
-            
-            // Ép buộc hiển thị giao diện chính
+
+            user = { name: nameInput, id: idInput };
+            document.getElementById('displayName').innerText = nameInput;
+
+            // Xử lý hiển thị bằng cách can thiệp trực tiếp vào Style
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appMain').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'block';
         };
 
-        async function logScoreToCloud(game, finalScore) {
-            if(!window.db) return;
-            try {
-                await addDoc(collection(window.db, 'artifacts', window.appId, 'public', 'data', 'scores'), {
-                    studentName: currentStudent.name,
-                    studentId: currentStudent.id,
-                    game: game,
-                    score: finalScore,
-                    timestamp: serverTimestamp()
-                });
-            } catch(e) { console.error(e); }
+        window.startSpeedGame = () => {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('gameSection').style.display = 'flex';
+            score = 0;
+            document.getElementById('currentScore').innerText = "0";
+            
+            let time = 30;
+            document.getElementById('gameTimer').innerText = time;
+
+            timer = setInterval(() => {
+                time--;
+                document.getElementById('gameTimer').innerText = time;
+                if(time <= 0) {
+                    clearInterval(timer);
+                    finishGame();
+                }
+            }, 1000);
+
+            nextQuestion();
+        };
+
+        function nextQuestion() {
+            const target = DATA[Math.floor(Math.random() * DATA.length)];
+            document.getElementById('russianWord').innerText = target.r;
+
+            let opts = [target.n];
+            while(opts.length < 4) {
+                let r = Math.floor(Math.random() * 30) + 1;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            opts.forEach(o => {
+                const b = document.createElement('button');
+                b.className = "bg-white text-blue-700 font-bold py-5 rounded-2xl text-2xl shadow-md active:bg-blue-50 transition-colors";
+                b.innerText = o;
+                b.onclick = () => {
+                    if(o === target.n) {
+                        score += 10;
+                        document.getElementById('currentScore').innerText = score;
+                        nextQuestion();
+                    } else {
+                        score = Math.max(0, score - 5);
+                        document.getElementById('currentScore').innerText = score;
+                        b.style.backgroundColor = '#fee2e2';
+                        setTimeout(() => nextQuestion(), 200);
+                    }
+                };
+                grid.appendChild(b);
+            });
         }
 
-        window.openTeacherModal = async () => {
-            const pass = prompt("🔐 ADMIN ACCESS\nNhập mã PIN:");
-            if(pass !== ADMIN_PIN) {
-                if(pass !== null) alert("Sai mã PIN!");
-                return;
+        async function finishGame() {
+            alert(`🎉 Chúc mừng ${user.name}!\nBạn đạt được ${score} điểm.`);
+            
+            if(window.db) {
+                try {
+                    await addDoc(collection(window.db, 'artifacts', window.appId, 'public', 'data', 'scores'), {
+                        studentName: user.name,
+                        studentId: user.id,
+                        score: score,
+                        timestamp: serverTimestamp()
+                    });
+                } catch(e) { console.error(e); }
             }
+            quitGame();
+        }
+
+        window.quitGame = () => {
+            clearInterval(timer);
+            document.getElementById('dashboardSection').style.display = 'block';
+            document.getElementById('gameSection').style.display = 'none';
+        };
+
+        // ADMIN LOGIC
+        window.openTeacherModal = async () => {
+            const p = prompt("Mã xác thực Admin:");
+            if(p !== PIN) return;
 
             document.getElementById('teacherModal').classList.add('active');
-            const tbody = document.getElementById('scoreTableBody');
-            tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400">Đang tải...</td></tr>';
+            const b = document.getElementById('scoreTableBody');
+            b.innerHTML = '<tr><td colspan="4" class="p-10 text-center italic text-gray-400">Đang lấy dữ liệu...</td></tr>';
 
             try {
                 const q = query(collection(window.db, 'artifacts', window.appId, 'public', 'data', 'scores'), orderBy('timestamp', 'desc'));
-                const snap = await getDocs(q);
-                tbody.innerHTML = '';
-                if(snap.empty) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-300 italic">Chưa có dữ liệu.</td></tr>';
-                    return;
-                }
-                snap.forEach(doc => {
+                const s = await getDocs(q);
+                b.innerHTML = '';
+                s.forEach(doc => {
                     const d = doc.data();
-                    const date = d.timestamp ? d.timestamp.toDate().toLocaleString('vi-VN') : 'Vừa xong';
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-blue-50/50 transition-colors">
+                    const t = d.timestamp ? d.timestamp.toDate().toLocaleString('vi-VN') : 'Mới';
+                    b.innerHTML += `
+                        <tr class="border-b border-gray-50">
                             <td class="p-4 font-bold text-gray-700">${d.studentName}</td>
                             <td class="p-4 text-gray-400 text-xs">${d.studentId}</td>
-                            <td class="p-4 text-center"><span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-bold">${d.score}</span></td>
-                            <td class="p-4 text-[10px] text-gray-300 font-mono">${date}</td>
+                            <td class="p-4 text-center font-black text-blue-600">${d.score}</td>
+                            <td class="p-4 text-[10px] text-gray-300">${t}</td>
                         </tr>
                     `;
                 });
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">Lỗi tải dữ liệu!</td></tr>'; }
+            } catch(e) { b.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-400">Lỗi kết nối!</td></tr>'; }
         };
 
         window.closeTeacherModal = () => document.getElementById('teacherModal').classList.remove('active');
-
-        window.startSpeedGame = () => {
-            document.getElementById('game-hub').style.display = 'none';
-            document.getElementById('game-speed').style.display = 'flex';
-            score = 0;
-            document.getElementById('currentSpeedScore').innerText = "0";
-            
-            let timeLeft = 30;
-            document.getElementById('speedTimer').innerText = timeLeft;
-            
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('speedTimer').innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(timer);
-                    alert("⏰ KẾT THÚC!\nĐiểm của bạn: " + score);
-                    logScoreToCloud("Tốc độ", score);
-                    document.getElementById('game-hub').style.display = 'block';
-                    document.getElementById('game-speed').style.display = 'none';
-                }
-            }, 1000);
-            renderTurn();
-        };
-
-        function renderTurn() {
-            const target = russianNumbers[Math.floor(Math.random() * russianNumbers.length)];
-            document.getElementById('targetWord').innerText = target.ru;
-
-            let choices = [target.num];
-            while(choices.length < 4) {
-                let r = Math.floor(Math.random() * 30) + 1;
-                if(!choices.includes(r)) choices.push(r);
-            }
-            choices.sort(() => Math.random() - 0.5);
-
-            const container = document.getElementById('gameOptions');
-            container.innerHTML = '';
-            choices.forEach(val => {
-                const btn = document.createElement('button');
-                btn.className = "bg-white text-blue-700 font-extrabold py-5 rounded-2xl text-2xl shadow-lg active:scale-90 transition-all border-b-4 border-gray-200";
-                btn.innerText = val;
-                btn.onclick = () => {
-                    if(val === target.num) {
-                        score += 10;
-                        document.getElementById('currentSpeedScore').innerText = score;
-                        renderTurn();
-                    } else {
-                        score = Math.max(0, score - 5);
-                        document.getElementById('currentSpeedScore').innerText = score;
-                        btn.style.backgroundColor = '#fee2e2';
-                        btn.style.color = '#ef4444';
-                        setTimeout(() => renderTurn(), 200);
-                    }
-                };
-                container.appendChild(btn);
-            });
-        }
     </script>
 </body>
 </html>
