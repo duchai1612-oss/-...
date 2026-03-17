@@ -24,11 +24,10 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 15px; }
         .modal.active { display: flex; }
         #loginOverlay { position: fixed; inset: 0; z-index: 9999; background: #1d4ed8; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .hidden-section { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -40,7 +39,7 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-1">Chào mừng bạn!</h2>
             <p class="text-gray-400 mb-6 text-sm">Nhập thông tin để bắt đầu thử thách</p>
             <input type="text" id="studentName" placeholder="Họ và Tên" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl mb-3 focus:border-blue-500 outline-none transition-all">
-            <input type="text" id="studentId" placeholder="Mã số sinh viên" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl mb-6 focus:border-blue-500 outline-none transition-all">
+            <input type="text" id="studentId" placeholder="MSSV" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl mb-6 focus:border-blue-500 outline-none transition-all">
             <button onclick="saveStudentInfo()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 active:scale-95 transition-all shadow-xl text-lg uppercase tracking-wide">Vào học ngay</button>
         </div>
     </div>
@@ -81,8 +80,8 @@
         </div>
     </nav>
 
-    <!-- GIAO DIỆN CHÍNH -->
-    <main id="appMain" class="max-w-4xl mx-auto p-4 space-y-6 hidden-section">
+    <!-- GIAO DIỆN CHÍNH (Sử dụng inline style để kiểm soát tuyệt đối) -->
+    <main id="appMain" class="max-w-4xl mx-auto p-4 space-y-6" style="display: none;">
         
         <!-- Welcome Info -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border-l-8 border-blue-500">
@@ -112,14 +111,13 @@
         </section>
 
         <!-- GAME AREA -->
-        <section id="game-speed" class="hidden-section">
+        <section id="game-speed" style="display: none;">
             <div class="bg-blue-700 text-white rounded-[2.5rem] p-8 text-center shadow-2xl relative min-h-[400px] flex flex-col justify-between overflow-hidden">
-                <!-- Effect -->
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
                 
                 <div class="flex justify-between items-center relative z-10">
                     <div class="bg-black/20 px-4 py-2 rounded-2xl text-xs font-bold border border-white/10">ĐIỂM: <span id="currentSpeedScore" class="text-yellow-400 text-lg ml-1">0</span></div>
-                    <div id="speedTimerBox" class="bg-red-500 px-5 py-2 rounded-2xl font-bold shadow-lg flex items-center space-x-2">
+                    <div class="bg-red-500 px-5 py-2 rounded-2xl font-bold shadow-lg flex items-center space-x-2">
                         <span>⏱</span>
                         <span id="speedTimer" class="text-xl">30</span>
                     </div>
@@ -138,7 +136,6 @@
     <script type="module">
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // MÃ PIN MỚI LÀ 9999
         const ADMIN_PIN = "9999";
 
         const russianNumbers = [
@@ -152,22 +149,21 @@
         let score = 0;
         let timer;
 
-        // Xử lý lưu thông tin và mở giao diện
         window.saveStudentInfo = () => {
             const nameVal = document.getElementById('studentName').value.trim();
             const idVal = document.getElementById('studentId').value.trim();
             
             if(!nameVal || !idVal) {
-                alert("Bạn vui lòng nhập đủ Họ tên và MSSV để học nhé!");
+                alert("Bạn vui lòng nhập đủ Họ tên và MSSV nhé!");
                 return;
             }
             
             currentStudent = { name: nameVal, id: idVal };
             document.getElementById('displayName').innerText = nameVal;
             
-            // Ẩn overlay đăng nhập và Hiện main app
+            // Ép buộc hiển thị giao diện chính
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appMain').classList.remove('hidden-section');
+            document.getElementById('appMain').style.display = 'block';
         };
 
         async function logScoreToCloud(game, finalScore) {
@@ -180,31 +176,31 @@
                     score: finalScore,
                     timestamp: serverTimestamp()
                 });
-            } catch(e) { console.error("Firebase Error:", e); }
+            } catch(e) { console.error(e); }
         }
 
         window.openTeacherModal = async () => {
-            const pass = prompt("🔐 XÁC THỰC ADMIN\nNhập mã bảo mật (9xxx):");
+            const pass = prompt("🔐 ADMIN ACCESS\nNhập mã PIN:");
             if(pass !== ADMIN_PIN) {
-                if(pass !== null) alert("Mã PIN không chính xác!");
+                if(pass !== null) alert("Sai mã PIN!");
                 return;
             }
 
             document.getElementById('teacherModal').classList.add('active');
             const tbody = document.getElementById('scoreTableBody');
-            tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 italic">Đang tải dữ liệu bảng điểm...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400">Đang tải...</td></tr>';
 
             try {
                 const q = query(collection(window.db, 'artifacts', window.appId, 'public', 'data', 'scores'), orderBy('timestamp', 'desc'));
                 const snap = await getDocs(q);
                 tbody.innerHTML = '';
                 if(snap.empty) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-300 italic">Chưa có ai tham gia trò chơi này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-300 italic">Chưa có dữ liệu.</td></tr>';
                     return;
                 }
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const date = d.timestamp ? d.timestamp.toDate().toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'2-digit'}) : 'Vừa xong';
+                    const date = d.timestamp ? d.timestamp.toDate().toLocaleString('vi-VN') : 'Vừa xong';
                     tbody.innerHTML += `
                         <tr class="hover:bg-blue-50/50 transition-colors">
                             <td class="p-4 font-bold text-gray-700">${d.studentName}</td>
@@ -214,14 +210,14 @@
                         </tr>
                     `;
                 });
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">Lỗi kết nối Server! Vui lòng thử lại.</td></tr>'; }
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">Lỗi tải dữ liệu!</td></tr>'; }
         };
 
         window.closeTeacherModal = () => document.getElementById('teacherModal').classList.remove('active');
 
         window.startSpeedGame = () => {
-            document.getElementById('game-hub').classList.add('hidden-section');
-            document.getElementById('game-speed').classList.remove('hidden-section');
+            document.getElementById('game-hub').style.display = 'none';
+            document.getElementById('game-speed').style.display = 'flex';
             score = 0;
             document.getElementById('currentSpeedScore').innerText = "0";
             
@@ -233,10 +229,10 @@
                 document.getElementById('speedTimer').innerText = timeLeft;
                 if(timeLeft <= 0) {
                     clearInterval(timer);
-                    alert("⏰ HẾT GIỜ!\n" + currentStudent.name + " đã đạt: " + score + " điểm.");
+                    alert("⏰ KẾT THÚC!\nĐiểm của bạn: " + score);
                     logScoreToCloud("Tốc độ", score);
-                    document.getElementById('game-hub').classList.remove('hidden-section');
-                    document.getElementById('game-speed').classList.add('hidden-section');
+                    document.getElementById('game-hub').style.display = 'block';
+                    document.getElementById('game-speed').style.display = 'none';
                 }
             }, 1000);
             renderTurn();
@@ -257,7 +253,7 @@
             container.innerHTML = '';
             choices.forEach(val => {
                 const btn = document.createElement('button');
-                btn.className = "bg-white text-blue-700 font-extrabold py-5 rounded-2xl text-2xl shadow-lg active:scale-90 active:bg-blue-100 transition-all border-b-4 border-gray-200";
+                btn.className = "bg-white text-blue-700 font-extrabold py-5 rounded-2xl text-2xl shadow-lg active:scale-90 transition-all border-b-4 border-gray-200";
                 btn.innerText = val;
                 btn.onclick = () => {
                     if(val === target.num) {
@@ -267,7 +263,8 @@
                     } else {
                         score = Math.max(0, score - 5);
                         document.getElementById('currentSpeedScore').innerText = score;
-                        btn.classList.add('bg-red-50', 'text-red-500', 'border-red-200');
+                        btn.style.backgroundColor = '#fee2e2';
+                        btn.style.color = '#ef4444';
                         setTimeout(() => renderTurn(), 200);
                     }
                 };
