@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russian Numbers Adventure - Học tiếng Nga vui nhộn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f9ff;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            height: 250px;
+        }
+
+        .number-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .number-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .russian-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #1e40af;
+            word-break: break-word;
+        }
+
+        /* Memory Game Styles */
+        .memory-card {
+            aspect-ratio: 1/1;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .memory-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+        .memory-card-front, .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            border: 2px solid #e2e8f0;
+        }
+        .memory-card-front {
+            background-color: #3b82f6;
+            color: white;
+            font-size: 2rem;
+        }
+        .memory-card-back {
+            background-color: white;
+            transform: rotateY(180deg);
+        }
+        .memory-card.matched {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.6s, opacity 0.6s linear;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">🇷🇺 Russian Numbers</h1>
+            <div class="space-x-4 font-semibold text-sm">
+                <button onclick="showSection('dashboard')" class="hover:text-yellow-300">Tổng quan</button>
+                <button onclick="showSection('learning')" class="hover:text-yellow-300">Học tập</button>
+                <button onclick="showSection('game-hub')" class="hover:text-yellow-300">Trò chơi</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6">
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="space-y-8">
+            <div class="bg-white rounded-3xl p-8 shadow-sm border-b-4 border-blue-200">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Chào mừng, Học viên! 👋</h2>
+                <p class="text-gray-500 italic">"Ghi nhớ số tiếng Nga chưa bao giờ dễ dàng đến thế."</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="bg-blue-50 p-6 rounded-2xl text-center border border-blue-100">
+                        <span class="text-4xl">📚</span>
+                        <div class="text-2xl font-bold text-blue-600 mt-2">150+</div>
+                        <div class="text-sm text-gray-600 uppercase">Dữ liệu nạp</div>
+                    </div>
+                    <div class="bg-pink-50 p-6 rounded-2xl text-center border border-pink-100">
+                        <span class="text-4xl">🎯</span>
+                        <div class="text-2xl font-bold text-pink-600 mt-2">5 Trò chơi</div>
+                        <div class="text-sm text-gray-600 uppercase">Tương tác cao</div>
+                    </div>
+                    <div class="bg-yellow-50 p-6 rounded-2xl text-center border border-yellow-100">
+                        <span class="text-4xl">🔥</span>
+                        <div class="text-2xl font-bold text-yellow-600 mt-2">Mới</div>
+                        <div class="text-sm text-gray-600 uppercase">Cập nhật Số Thứ Tự</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-3xl p-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Tiến độ theo chủ đề</h3>
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl p-6 shadow-sm flex flex-col justify-center text-center space-y-4">
+                    <h3 class="text-xl font-bold text-gray-800">Khám phá số thứ tự!</h3>
+                    <p class="text-gray-600">Chúng tôi vừa bổ sung các số thứ tự quan trọng từ 12 đến 80.</p>
+                    <button onclick="showSection('learning')" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 shadow-md">Học ngay</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LEARNING LAB -->
+        <section id="learning" class="hidden space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <h2 class="text-3xl font-bold text-gray-800">Phòng Lab Học Tập 🔬</h2>
+                <div class="flex bg-gray-200 p-1 rounded-xl">
+                    <button onclick="toggleLearningMode('cardinal')" id="btnCardinal" class="px-6 py-2 rounded-lg font-bold bg-white text-blue-600 shadow-sm transition">Số đếm</button>
+                    <button onclick="toggleLearningMode('ordinal')" id="btnOrdinal" class="px-6 py-2 rounded-lg font-bold text-gray-600 transition">Số thứ tự</button>
+                </div>
+            </div>
+            <div id="learningGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+        </section>
+
+        <!-- GAME HUB -->
+        <section id="game-hub" class="hidden space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Kho Trò Chơi 🎮</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-blue-100 hover:border-blue-400 transition cursor-pointer" onclick="showSection('game-speed')">
+                        <div class="text-4xl mb-2">⚡</div>
+                        <h3 class="text-lg font-bold text-blue-600">Thử thách Tốc độ</h3>
+                        <p class="text-gray-500 text-xs mt-1">Chọn số đúng từ chữ hiển thị.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-pink-100 hover:border-pink-400 transition cursor-pointer" onclick="initMemoryGame()">
+                        <div class="text-4xl mb-2">🧠</div>
+                        <h3 class="text-lg font-bold text-pink-600">Ghép thẻ Trí nhớ</h3>
+                        <p class="text-gray-500 text-xs mt-1">Tìm các cặp thẻ tương ứng.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-green-100 hover:border-green-400 transition cursor-pointer" onclick="initListeningGame()">
+                        <div class="text-4xl mb-2">🎧</div>
+                        <h3 class="text-lg font-bold text-green-600">Nghe & Chọn</h3>
+                        <p class="text-gray-500 text-xs mt-1">Luyện kỹ năng nghe số tiếng Nga.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-yellow-100 hover:border-yellow-400 transition cursor-pointer" onclick="initSpellingGame()">
+                        <div class="text-4xl mb-2">✍️</div>
+                        <h3 class="text-lg font-bold text-yellow-600">Điền ô trống</h3>
+                        <p class="text-gray-500 text-xs mt-1">Nhớ cách viết chính xác.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-purple-100 hover:border-purple-400 transition cursor-pointer" onclick="initSortingGame()">
+                        <div class="text-4xl mb-2">🔢</div>
+                        <h3 class="text-lg font-bold text-purple-600">Sắp xếp thứ tự</h3>
+                        <p class="text-gray-500 text-xs mt-1">Sắp xếp số từ nhỏ đến lớn.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GAME SECTIONS (Keep same IDs for functionality) -->
+        <section id="game-speed" class="hidden space-y-8">
+            <div class="bg-blue-600 text-white rounded-3xl p-8 text-center shadow-xl relative">
+                <button onclick="showSection('game-hub')" class="absolute top-4 left-4 text-white opacity-50 hover:opacity-100">← Thoát</button>
+                <h2 class="text-2xl font-bold mb-4">Tốc độ ⚡</h2>
+                <div id="targetWord" class="text-4xl font-extrabold my-8 h-16 flex items-center justify-center">...</div>
+                <div id="gameOptions" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto"></div>
+                <button onclick="startSpeedGame()" class="mt-8 bg-yellow-400 text-blue-900 px-10 py-3 rounded-full font-extrabold hover:bg-yellow-300">BẮT ĐẦU</button>
+            </div>
+        </section>
+
+        <section id="game-memory" class="hidden space-y-8">
+            <div class="bg-pink-600 text-white rounded-3xl p-8 text-center shadow-xl relative">
+                <button onclick="showSection('game-hub')" class="absolute top-4 left-4 text-white opacity-50 hover:opacity-100">← Thoát</button>
+                <h2 class="text-2xl font-bold mb-4">Trí nhớ 🧠</h2>
+                <div id="memoryBoard" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-w-3xl mx-auto"></div>
+                <button onclick="initMemoryGame()" class="mt-8 bg-white text-pink-600 px-8 py-2 rounded-full font-bold">CHƠI MỚI</button>
+            </div>
+        </section>
+
+        <section id="game-listening" class="hidden space-y-8">
+            <div class="bg-green-600 text-white rounded-3xl p-8 text-center shadow-xl relative">
+                <button onclick="showSection('game-hub')" class="absolute top-4 left-4 text-white opacity-50 hover:opacity-100">← Thoát</button>
+                <h2 class="text-2xl font-bold mb-4">Nghe & Chọn 🎧</h2>
+                <div class="mb-8">
+                    <button onclick="playTargetSound()" class="bg-white text-green-600 p-6 rounded-full shadow-lg hover:scale-105 transition active:scale-95">
+                        <span class="text-4xl">🔊</span>
+                    </button>
+                </div>
+                <div id="listeningOptions" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto"></div>
+                <button onclick="initListeningGame()" class="mt-8 bg-yellow-400 text-green-900 px-10 py-3 rounded-full font-bold">PHÁT SỐ MỚI</button>
+            </div>
+        </section>
+
+        <section id="game-spelling" class="hidden space-y-8">
+            <div class="bg-yellow-500 text-white rounded-3xl p-8 text-center shadow-xl relative">
+                <button onclick="showSection('game-hub')" class="absolute top-4 left-4 text-white opacity-50 hover:opacity-100">← Thoát</button>
+                <h2 class="text-2xl font-bold mb-4">Điền vào ô trống ✍️</h2>
+                <div id="spellingNum" class="text-6xl font-black mb-6">?</div>
+                <div id="spellingWord" class="text-3xl font-mono tracking-widest bg-yellow-600 py-4 rounded-xl mb-8">...</div>
+                <div id="spellingKeyboard" class="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto"></div>
+                <button onclick="initSpellingGame()" class="mt-8 bg-white text-yellow-600 px-8 py-2 rounded-full font-bold">ĐỔI TỪ</button>
+            </div>
+        </section>
+
+        <section id="game-sorting" class="hidden space-y-8">
+            <div class="bg-purple-600 text-white rounded-3xl p-8 text-center shadow-xl relative">
+                <button onclick="showSection('game-hub')" class="absolute top-4 left-4 text-white opacity-50 hover:opacity-100">← Thoát</button>
+                <h2 class="text-2xl font-bold mb-4">Sắp xếp thứ tự 🔢</h2>
+                <div id="sortingContainer" class="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto"></div>
+                <div id="sortingFeedback" class="mt-8 h-8 font-bold"></div>
+                <button onclick="initSortingGame()" class="mt-4 bg-white text-purple-600 px-8 py-2 rounded-full font-bold">LÀM MỚI</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Updated Cardinal Data
+        const cardinalData = [
+            { num: 1, ru: "один" }, { num: 2, ru: "два" }, { num: 3, ru: "три" },
+            { num: 4, ru: "четыре" }, { num: 5, ru: "пять" }, { num: 6, ru: "шесть" },
+            { num: 7, ru: "семь" }, { num: 8, ru: "восемь" }, { num: 9, ru: "девять" },
+            { num: 10, ru: "десять" }, { num: 11, ru: "одиннадцать" }, { num: 12, ru: "двенадцать" },
+            { num: 13, ru: "тринадцать" }, { num: 14, ru: "четырнадцать" }, { num: 15, ru: "пятнадцать" },
+            { num: 16, ru: "шестнадцать" }, { num: 17, ru: "семнадцать" }, { num: 18, ru: "восемнадцать" },
+            { num: 19, ru: "девятнадцать" }, { num: 20, ru: "двадцать" }, { num: 30, ru: "тридцать" },
+            { num: 40, ru: "сорок" }, { num: 50, ru: "пятьдесят" }, { num: 60, ru: "шестьдесят" },
+            { num: 70, ru: "семьдесят" }, { num: 80, ru: "восемьдесят" }, { num: 90, ru: "девяносто" },
+            { num: 100, ru: "сто" }
+        ];
+
+        // UPDATED Ordinal Data with new additions
+        const ordinalData = [
+            { num: 1, ru: "первый" }, { num: 2, ru: "второй" }, { num: 3, ru: "третий" },
+            { num: 4, ru: "четвертый" }, { num: 5, ru: "пятый" }, { num: 6, ru: "шестой" },
+            { num: 7, ru: "седьмой" }, { num: 8, ru: "восьмой" }, { num: 9, ru: "девятый" },
+            { num: 10, ru: "десятый" }, { num: 11, ru: "одиннадцатый" }, 
+            { num: 12, ru: "двенадцатый" }, { num: 13, ru: "тринадцатый" }, { num: 14, ru: "четырнадцатый" },
+            { num: 15, ru: "пятнадцатый" }, { num: 16, ru: "шестнадцатый" }, { num: 17, ru: "семнадцатый" },
+            { num: 18, ru: "восемнадцатый" }, { num: 19, ru: "девятнадцатый" },
+            { num: 20, ru: "двадцатый" }, { num: 30, ru: "тридцатый" }, { num: 40, ru: "сороковой" },
+            { num: 50, ru: "пятидесятый" }, { num: 60, ru: "шестидесятый" }, { num: 70, ru: "семидесятый" },
+            { num: 80, ru: "восьмидесятый" }, { num: 90, ru: "девяностый" }, { num: 100, ru: "сотый" }
+        ];
+
+        let currentMode = 'cardinal';
+        let listeningState = { target: null };
+        let russianVoice = null;
+
+        function initRussianVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            russianVoice = voices.find(v => v.lang.startsWith('ru')) || voices.find(v => v.name.includes('Russian'));
+            if (!voices.length) window.speechSynthesis.onvoiceschanged = initRussianVoice;
+        }
+        initRussianVoice();
+
+        function playSound(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            if (russianVoice) msg.voice = russianVoice;
+            else msg.lang = 'ru-RU';
+            msg.rate = 0.85;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function playTargetSound() {
+            if (listeningState.target) playSound(listeningState.target.ru);
+        }
+
+        function showSection(id) {
+            const sections = ['dashboard', 'learning', 'game-hub', 'game-speed', 'game-memory', 'game-listening', 'game-spelling', 'game-sorting'];
+            sections.forEach(sec => document.getElementById(sec).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'learning') renderLearning();
+        }
+
+        function toggleLearningMode(mode) {
+            currentMode = mode;
+            document.getElementById('btnCardinal').className = mode === 'cardinal' ? "px-6 py-2 rounded-lg font-bold bg-white text-blue-600 shadow-sm" : "px-6 py-2 rounded-lg font-bold text-gray-600";
+            document.getElementById('btnOrdinal').className = mode === 'ordinal' ? "px-6 py-2 rounded-lg font-bold bg-white text-blue-600 shadow-sm" : "px-6 py-2 rounded-lg font-bold text-gray-600";
+            renderLearning();
+        }
+
+        function renderLearning() {
+            const grid = document.getElementById('learningGrid');
+            grid.innerHTML = '';
+            const data = currentMode === 'cardinal' ? cardinalData : ordinalData;
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl text-center shadow-sm number-card border border-gray-100 flex flex-col justify-center min-h-[100px]";
+                card.innerHTML = `<div class="text-xl font-extrabold text-blue-500">${item.num}${currentMode === 'ordinal' ? '.' : ''}</div><div class="russian-text text-sm">${item.ru}</div>`;
+                card.onclick = () => playSound(item.ru);
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Games Re-Init with New Data ---
+        function startSpeedGame() {
+            const data = Math.random() > 0.5 ? cardinalData : ordinalData;
+            const nextTurn = () => {
+                const target = data[Math.floor(Math.random() * data.length)];
+                document.getElementById('targetWord').innerText = target.ru;
+                const options = [target.num];
+                while(options.length < 4) {
+                    let r = data[Math.floor(Math.random() * data.length)].num;
+                    if(!options.includes(r)) options.push(r);
+                }
+                options.sort(() => Math.random() - 0.5);
+                const container = document.getElementById('gameOptions');
+                container.innerHTML = '';
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-white text-blue-600 font-bold py-4 rounded-xl text-xl shadow-md";
+                    btn.innerText = opt;
+                    btn.onclick = () => {
+                        if(opt === target.num) nextTurn();
+                        else { document.getElementById('targetWord').innerText = "❌"; setTimeout(nextTurn, 500); }
+                    };
+                    container.appendChild(btn);
+                });
+            };
+            nextTurn();
+        }
+
+        function initMemoryGame() {
+            showSection('game-memory');
+            let flipped = [];
+            const data = Math.random() > 0.5 ? cardinalData : ordinalData;
+            const pool = data.slice().sort(() => Math.random() - 0.5).slice(0, 6);
+            let deck = [];
+            pool.forEach(item => {
+                deck.push({ id: item.num + (data === ordinalData ? 'o' : 'c'), display: item.num + (data === ordinalData ? '.' : '') });
+                deck.push({ id: item.num + (data === ordinalData ? 'o' : 'c'), display: item.ru });
+            });
+            deck.sort(() => Math.random() - 0.5);
+            const board = document.getElementById('memoryBoard');
+            board.innerHTML = '';
+            deck.forEach(cardData => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "memory-card";
+                cardEl.innerHTML = `<div class="memory-card-inner"><div class="memory-card-front">?</div><div class="memory-card-back text-blue-600 font-bold text-[10px] p-1">${cardData.display}</div></div>`;
+                cardEl.onclick = () => {
+                    if (flipped.length === 2 || cardEl.classList.contains('flipped')) return;
+                    cardEl.classList.add('flipped');
+                    flipped.push({ el: cardEl, data: cardData });
+                    if (flipped.length === 2) {
+                        if (flipped[0].data.id === flipped[1].data.id) {
+                            setTimeout(() => { flipped[0].el.classList.add('matched'); flipped[1].el.classList.add('matched'); flipped = []; }, 600);
+                        } else {
+                            setTimeout(() => { flipped[0].el.classList.remove('flipped'); flipped[1].el.classList.remove('flipped'); flipped = []; }, 1000);
+                        }
+                    }
+                };
+                board.appendChild(cardEl);
+            });
+        }
+
+        function initListeningGame() {
+            showSection('game-listening');
+            const data = Math.random() > 0.5 ? cardinalData : ordinalData;
+            const target = data[Math.floor(Math.random() * data.length)];
+            listeningState.target = target;
+            
+            const options = [target.ru];
+            while(options.length < 4) {
+                let r = data[Math.floor(Math.random() * data.length)].ru;
+                if(!options.includes(r)) options.push(r);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById('listeningOptions');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white text-green-600 font-bold py-4 rounded-xl text-xs sm:text-lg shadow-md";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(opt === target.ru) { btn.className += " bg-green-100 border-2 border-green-400"; setTimeout(initListeningGame, 800); }
+                    else btn.className += " bg-red-100 opacity-50";
+                };
+                container.appendChild(btn);
+            });
+            setTimeout(playTargetSound, 300);
+        }
+
+        function initSpellingGame() {
+            showSection('game-spelling');
+            const data = Math.random() > 0.5 ? cardinalData : ordinalData;
+            const target = data[Math.floor(Math.random() * data.length)];
+            let currentGuess = "_".repeat(target.ru.length);
+            const updateUI = () => {
+                document.getElementById('spellingNum').innerText = target.num + (data === ordinalData ? '.' : '');
+                document.getElementById('spellingWord').innerText = currentGuess.split("").join(" ");
+            };
+            updateUI();
+            const chars = "абвгдеёжзийклмнопrстуфхцчшщъыьэюя".split("");
+            const kb = document.getElementById('spellingKeyboard');
+            kb.innerHTML = '';
+            chars.forEach(char => {
+                if (target.ru.includes(char)) {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-white text-yellow-700 px-3 py-2 rounded-lg font-bold shadow hover:bg-yellow-50";
+                    btn.innerText = char;
+                    btn.onclick = () => {
+                        let nextG = "";
+                        for(let i=0; i<target.ru.length; i++) nextG += target.ru[i] === char ? char : currentGuess[i];
+                        currentGuess = nextG;
+                        updateUI();
+                        if (currentGuess === target.ru) { playSound(target.ru); setTimeout(initSpellingGame, 1000); }
+                    };
+                    kb.appendChild(btn);
+                }
+            });
+        }
+
+        function initSortingGame() {
+            showSection('game-sorting');
+            const data = Math.random() > 0.5 ? cardinalData : ordinalData;
+            const pool = data.slice().sort(() => Math.random() - 0.5).slice(0, 5).sort((a,b)=>a.num-b.num);
+            let expectedIndex = 0;
+            const shuffled = [...pool].sort(() => Math.random() - 0.5);
+            const container = document.getElementById('sortingContainer');
+            container.innerHTML = '';
+            document.getElementById('sortingFeedback').innerText = "";
+            shuffled.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white text-purple-600 font-bold px-4 py-3 rounded-xl shadow-md border-2 border-transparent hover:border-purple-300";
+                btn.innerText = item.ru;
+                btn.onclick = () => {
+                    if (item.num === pool[expectedIndex].num) {
+                        btn.classList.add('opacity-0', 'pointer-events-none');
+                        expectedIndex++;
+                        if (expectedIndex === pool.length) { document.getElementById('sortingFeedback').innerText = "HOÀN THÀNH!"; setTimeout(initSortingGame, 1500); }
+                    } else {
+                        document.getElementById('sortingFeedback').innerText = "Sai rồi!";
+                        document.getElementById('sortingFeedback').className = "text-red-300 mt-8 h-8 font-bold";
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        window.onload = () => {
+            initRussianVoice();
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Số đếm', 'Số thứ tự', 'Nghe', 'Viết', 'Sắp xếp'],
+                    datasets: [{
+                        label: 'Kỹ năng',
+                        data: [90, 70, 80, 65, 75],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: '#6366f1',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
